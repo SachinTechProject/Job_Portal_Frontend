@@ -77,7 +77,7 @@ const Login = () => {
         if (formData.role === 'admin') {
           navigate('/application');
         } else if (formData.role === 'recruiter') {
-          navigate('/recruiter/jobs');
+          navigate('/recruiter');
         } else {
           navigate('/dashboard');
         }

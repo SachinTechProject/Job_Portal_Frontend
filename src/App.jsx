@@ -18,6 +18,8 @@ import Companies from './pages/Companies'
 import PrivateRoute from './components/PrivateRoute'
 import NotFound from './pages/NotFound'
 import PostJob from './pages/PostJob'
+import AddCompany from './pages/AddCompany'
+import Setting from './pages/Setting'
 function App() {
 
 
@@ -43,6 +45,8 @@ function App() {
         <Route path='/jobs' element={<FindJob/>} />
         <Route path='/companies' element={<Companies/>} />
         <Route path='/post-job' element={<PostJob/>} />
+        <Route path='/add-company' element={<AddCompany/>} />
+        <Route path='/setting' element={<Setting/>} />
       </Route>
 
       {/* catch‑all */}

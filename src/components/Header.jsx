@@ -34,10 +34,15 @@ const Header = () => {
 
             {/* Logo */}
             <div className="flex-shrink-0">
+              { !isLogin ?
               <Link to="/" className="flex items-center space-x-2">
                 <span className="text-2xl font-bold text-indigo-600">Job</span>
                 <span className="text-2xl font-bold text-gray-900">Hub</span>
-              </Link>
+              </Link> : <Link to="/dashboard" className="flex items-center space-x-2">
+                <span className="text-2xl font-bold text-indigo-600">Job</span>
+                <span className="text-2xl font-bold text-gray-900">Hub</span>
+              </Link> 
+             }
             </div>
 
             {/* Desktop Navigation */}
@@ -54,21 +59,7 @@ const Header = () => {
             <div className="hidden md:flex items-center space-x-6">
               {isLogin ? (
                 <>
-                 {
-                    role === "admin" || "recruiter" ? <Link
-                    to="/post-job"
-                    className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium transition"
-                  >
-                    Post a Job
-                  </Link>: <Link
-                    to="/post-job"
-                    className="bg-indigo-600 text-white px-5 py-2.5 rounded-lg hover:bg-indigo-700 font-medium transition"
-                  >
-                    Jobs
-                  </Link>
-
-                  }
-                 
+                
                   {/* User Avatar / Menu Trigger */}
                   <button
                     onClick={() => setIsMenuOpen(true)}
@@ -166,22 +157,61 @@ const Header = () => {
 
                   <Link
                     to="/profile"
-                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 rounded-lg transition"
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Profile
                   </Link>
+
+                   {
+                    role === "admin" || "recruiter" ? <Link
+                    to="/add-company"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                  >
+                    See Company
+                  </Link>: <Link
+                    to="/add-company"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                  >
+                   Add Company
+                  </Link>
+
+                  }
                   
 
                   <Link
-                    to="/settings"
-                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-50 rounded-lg transition"
+                    to="/setting"
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Settings
                   </Link>
 
+
+
+                   {
+                    role === "admin" || "recruiter" ? <Link
+                    to="/post-job"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                  >
+                    Job
+                  </Link>: <Link
+                    to="/post-job"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                  >
+                  Post a Jobs
+                  </Link>
+
+                  }
+
+                  
+                 
                   <div className="border-t border-gray-200 my-3"></div>
+                  
 
                   {/* <button
                     onClick={handleLogout}

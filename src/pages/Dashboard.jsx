@@ -80,7 +80,7 @@ const Dashboard = () => {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="companyName, location, jobType, title, skills..."
-                className="w-full pl-14 pr-6 py-4 text-lg border-none rounded-full focus:outline-none focus:ring-4 focus:ring-indigo-300 shadow-2xl"
+                className="w-full pl-14 pr-6 py-4 bg-gray-200 text-black text-lg border-none rounded-full focus:outline-none focus:ring-4 focus:ring-indigo-300 shadow-2xl"
               />
               <button
                 type="submit"

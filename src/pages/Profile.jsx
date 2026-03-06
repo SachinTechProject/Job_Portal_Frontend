@@ -201,6 +201,7 @@ const Profile = () => {
                   <CameraIcon className="h-6 w-6 text-white" />
                   <input
                     type="file"
+                    name="profilePicture"
                     accept="image/*"
                     onChange={handleProfilePicChange}
                     className="hidden"
