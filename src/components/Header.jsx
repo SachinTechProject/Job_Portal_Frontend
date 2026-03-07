@@ -162,6 +162,13 @@ const Header = () => {
                   >
                     Profile
                   </Link>
+                  <Link
+                    to="/myResume"
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    My Resume
+                  </Link>
 
                    {
                     role === "admin" || "recruiter" ? <Link

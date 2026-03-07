@@ -3,6 +3,8 @@ import Header from './components/Header'
 import { UserContext } from './context/Usercontext'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
+import { Toaster } from "react-hot-toast";
+
 import Register from './components/Register'
 import Login from './components/Login'
 import Profile from './pages/Profile'
@@ -20,13 +22,16 @@ import NotFound from './pages/NotFound'
 import PostJob from './pages/PostJob'
 import AddCompany from './pages/AddCompany'
 import Setting from './pages/Setting'
+import MyResume from './pages/MyResume'
 function App() {
 
 
   return (
     <BrowserRouter>
     <UserContext>
+      <Toaster position="top-center" />
      <Header/>
+   
      
      <Routes>
       {/* public pages */}
@@ -47,6 +52,7 @@ function App() {
         <Route path='/post-job' element={<PostJob/>} />
         <Route path='/add-company' element={<AddCompany/>} />
         <Route path='/setting' element={<Setting/>} />
+        <Route path="/myResume" element={<MyResume/>} />
       </Route>
 
       {/* catch‑all */}
