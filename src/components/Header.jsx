@@ -176,13 +176,13 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                     className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                   >
-                    See Company
+                    Add Company
                   </Link>: <Link
-                    to="/add-company"
+                    to="/companies"
                     onClick={() => setIsMenuOpen(false)}
                     className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                   >
-                   Add Company
+                   see Company
                   </Link>
 
                   }

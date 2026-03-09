@@ -2,19 +2,25 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext'; // adjust path
+import { AuthContext } from '../context/AuthContext';
 
 const AddCompany = () => {
   const { isLogin, role } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    companyName: '',
+    name: '',
     website: '',
     location: '',
-    address: '',           // ← new field
+    address: '',
+    description: '',
+    industry: '',
+    companySize: '',
+    foundedYear: '',
+    logo: null,
   });
 
+  const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -35,39 +41,53 @@ const AddCompany = () => {
     setError('');
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFormData((prev) => ({ ...prev, logo: file }));
+    const reader = new FileReader();
+    reader.onloadend = () => setLogoPreview(reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    // Basic validation
-    if (!formData.companyName.trim()) {
-      setError('Company name is required');
+    if (!formData.name.trim() || !formData.website.trim() || !formData.location.trim()) {
+      setError('Company name, website and location are required');
       setLoading(false);
       return;
     }
-    if (!formData.website.trim()) {
-      setError('Website is required');
-      setLoading(false);
-      return;
-    }
-    if (!formData.location.trim()) {
-      setError('Location is required');
-      setLoading(false);
-      return;
-    }
-    // address is optional — no validation required
 
     try {
+      const formPayload = new FormData();
+
+      formPayload.append('name', formData.name.trim());
+      formPayload.append('website', formData.website.trim());
+      formPayload.append('location', formData.location.trim());
+
+      if (formData.description?.trim()) {
+        formPayload.append('description', formData.description.trim());
+      }
+      if (formData.industry?.trim()) {
+        formPayload.append('industry', formData.industry.trim());
+      }
+      if (formData.companySize?.trim()) {
+        formPayload.append('companySize', formData.companySize.trim());
+      }
+      if (formData.foundedYear) {
+        formPayload.append('foundedYear', formData.foundedYear);
+      }
+      if (formData.logo) {
+        formPayload.append('logo', formData.logo);
+      }
+
       const res = await axios.post(
         'http://localhost:5000/api/company/register-company',
-        {
-          companyName: formData.companyName.trim(),
-          website: formData.website.trim(),
-          location: formData.location.trim(),
-          address: formData.address.trim() || undefined,  // send only if filled
-        },
+        formPayload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -75,17 +95,17 @@ const AddCompany = () => {
         }
       );
 
-      if (res.data.success) {
-        setSuccess('Company registered successfully!');
+      if (res.data?.success || res.status === 201) {
+        setSuccess('Company successfully registered!');
         setTimeout(() => {
-          navigate('/companies'); // or '/my-companies', '/dashboard'
-        }, 1800);
+          navigate('/companies');
+        }, 1400);
+      } else {
+        setError('Unexpected response from server');
       }
     } catch (err) {
-      const errorMsg =
-        err.response?.data?.message ||
-        'Failed to register company. Please try again.';
-      setError(errorMsg);
+      const errorMessage = err.response?.data?.message || 'Failed to register company';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -93,17 +113,17 @@ const AddCompany = () => {
 
   if (!isLogin || (role !== 'recruiter' && role !== 'admin')) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-10 text-center max-w-md w-full">
-          <h2 className="text-3xl font-bold text-red-600 mb-4">Access Denied</h2>
-          <p className="text-gray-700 mb-8">
-            Only recruiters and administrators can register companies.
+      <div className="min-h-screen bg-gray-100 flex items-center justify-center p-6">
+        <div className="bg-white border border-gray-300 max-w-md w-full p-10 text-center">
+          <h2 className="text-3xl font-bold text-red-700 mb-5">Access Restricted</h2>
+          <p className="text-gray-700 mb-8 leading-relaxed">
+            This area is available only for recruiter and admin accounts.
           </p>
           <button
             onClick={() => navigate('/')}
-            className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+            className="bg-black text-white px-10 py-4 font-medium hover:bg-gray-800 transition"
           >
-            Back to Home
+            Return to Home
           </button>
         </div>
       </div>
@@ -111,115 +131,230 @@ const AddCompany = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-lg mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-10 text-white">
-          <h1 className="text-3xl font-bold">Register Your Company</h1>
-          <p className="mt-3 text-blue-100">
-            Add your company details to start posting jobs
-          </p>
-        </div>
-
-        <div className="p-8 lg:p-10">
-          {error && (
-            <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
-              {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 text-green-700 rounded-r-lg">
-              {success}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Company Name <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="companyName"
-                value={formData.companyName}
-                onChange={handleChange}
-                required
-                placeholder="e.g. TechNova Solutions Pvt Ltd"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Website <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="url"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                required
-                placeholder="https://www.yourcompany.com"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Location (City/State) <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                name="location"
-                value={formData.location}
-                onChange={handleChange}
-                required
-                placeholder="e.g. Hyderabad, Telangana"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Full Address (optional)
-              </label>
-              <textarea
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                rows={3}
-                placeholder="e.g. Plot No. 45, Hi-Tech City, Madhapur, Hyderabad, Telangana 500081"
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all shadow-sm resize-y"
-              />
-              <p className="mt-1.5 text-xs text-gray-500">
-                Street address, area, pin code, etc.
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto px-6 py-12 lg:py-16">
+        <div className="grid lg:grid-cols-12 gap-12">
+          {/* Left column - Info */}
+          <div className="lg:col-span-4">
+            <div className="sticky top-12">
+              <h1 className="text-4xl font-black text-gray-900 tracking-tight mb-6">
+                Register<br />Company
+              </h1>
+              <p className="text-gray-600 text-lg leading-relaxed mb-8">
+                Complete the form to add your organization to the platform. 
+                Verified companies can post jobs and manage applications.
               </p>
-            </div>
 
-            <div className="pt-6">
-              <button
-                type="submit"
-                disabled={loading}
-                className={`w-full py-4 px-8 rounded-xl text-white font-semibold text-lg transition-all shadow-md ${
-                  loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800 hover:shadow-lg'
-                }`}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-3">
-                    <svg className="animate-spin h-5 w-5 text-white" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8h8a8 8 0 01-16 0z" />
-                    </svg>
-                    Registering...
-                  </span>
-                ) : (
-                  'Register Company'
-                )}
-              </button>
+              <div className="space-y-6 text-sm text-gray-500">
+                <div>
+                  <div className="font-medium text-gray-700">Required fields</div>
+                  <ul className="list-disc pl-5 mt-1.5 space-y-1">
+                    <li>Company name</li>
+                    <li>Website</li>
+                    <li>Location</li>
+                  </ul>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-700">After submission</div>
+                  <p className="mt-1.5">
+                    Profile will be reviewed (usually 24–48 hours).
+                  </p>
+                </div>
+              </div>
             </div>
-          </form>
+          </div>
+
+          {/* Right column - Form */}
+          <div className="lg:col-span-8">
+            <div className="bg-white border border-gray-200 p-10 lg:p-14">
+              {error && (
+                <div className="mb-10 p-5 bg-red-50 border border-red-200 text-red-800">
+                  {error}
+                </div>
+              )}
+
+              {success && (
+                <div className="mb-10 p-5 bg-green-50 border border-green-200 text-green-800">
+                  {success}
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-10">
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company Name *
+                    </label>
+                    <input
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
+                      placeholder="Legal name or brand name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Website *
+                    </label>
+                    <input
+                      type="url"
+                      name="website"
+                      value={formData.website}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
+                      placeholder="https://"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      City / Region *
+                    </label>
+                    <input
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      required
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
+                      placeholder="e.g. Bengaluru, Karnataka"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Founded Year
+                    </label>
+                    <input
+                      type="number"
+                      name="foundedYear"
+                      value={formData.foundedYear}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
+                      placeholder="YYYY"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Logo (recommended square, min 200×200)
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-8 items-start">
+                    <div className="w-40 h-40 border-2 border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
+                      {logoPreview ? (
+                        <img src={logoPreview} alt="preview" className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-gray-400 text-sm">No logo</span>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="inline-block px-6 py-3.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 cursor-pointer transition">
+                        Select Image
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                      <p className="mt-3 text-sm text-gray-500">
+                        PNG / JPG / WebP • Max 4 MB
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Short Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    rows={4}
+                    className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition resize-y"
+                    placeholder="What does your company do? (2–4 sentences)"
+                  />
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-10">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Industry
+                    </label>
+                    <select
+                      name="industry"
+                      value={formData.industry}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none bg-white transition"
+                    >
+                      <option value="">— Select —</option>
+                      <option value="IT Services">IT Services & Consulting</option>
+                      <option value="Software Product">Software Product</option>
+                      <option value="Finance">Financial Services</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Education">Education</option>
+                      <option value="Manufacturing">Manufacturing</option>
+                      <option value="Retail">Retail / E-commerce</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Company Size
+                    </label>
+                    <select
+                      name="companySize"
+                      value={formData.companySize}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none bg-white transition"
+                    >
+                      <option value="">— Select —</option>
+                      <option value="1-10">1–10</option>
+                      <option value="11-50">11–50</option>
+                      <option value="51-200">51–200</option>
+                      <option value="201-500">201–500</option>
+                      <option value="501+">501+</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Registered / Head Office Address
+                  </label>
+                  <textarea
+                    name="address"
+                    value={formData.address}
+                    onChange={handleChange}
+                    rows={3}
+                    className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition resize-y"
+                    placeholder="Full postal address"
+                  />
+                </div>
+
+                <div className="pt-6">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className={`w-full md:w-auto px-12 py-4 font-medium text-white transition ${
+                      loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-black hover:bg-gray-800'
+                    }`}
+                  >
+                    {loading ? 'Processing...' : 'Submit Company Profile'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext'; // adjust path if needed
 import { toast } from "react-hot-toast";
-import 'react-toastify/dist/ReactToastify.css';
+
 
 const MyResume = () => {
   const { isLogin } = useContext(AuthContext);

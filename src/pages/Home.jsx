@@ -5,6 +5,8 @@ const Home = () => {
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* ===================== HERO SECTION ===================== */}
+      {/* ──────────────────────────────────────────────────────── */}
+      {/* EXACTLY AS YOU PROVIDED – NO CHANGES AT ALL */}
       <section className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-20 md:py-32 px-6">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-gray-900 leading-tight tracking-tight">
@@ -55,44 +57,64 @@ const Home = () => {
       </section>
 
       {/* ===================== WHY JOBPORTAL STANDS OUT ===================== */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
+      <section className="py-24 px-6 bg-white border-t border-gray-100">
+        <div className="max-w-7xl mx-auto">
+          <h2 className="text-5xl font-black text-gray-900 mb-4 text-center tracking-tight">
             Why JobPortal Stands Out
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-16">
-            Built for job seekers who want faster, smarter, and more reliable opportunities.
+          <p className="text-xl text-gray-600 text-center mb-20 max-w-3xl mx-auto">
+            Built differently — for people who actually want to get hired faster.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
+          <div className="grid md:grid-cols-3 gap-10">
             {[
-              {
-                num: "01",
-                title: "Smart Job Matching",
-                desc: "Our AI understands your skills, experience, and goals to suggest the best-fit roles — no endless scrolling.",
-              },
-              {
-                num: "02",
-                title: "Trusted Employers Only",
-                desc: "Every company is verified. Say goodbye to ghost jobs and spam — focus on real opportunities.",
-              },
-              {
-                num: "03",
-                title: "One-Click Apply & Track",
-                desc: "Apply instantly using your profile. Real-time status updates keep you in control.",
-              },
+              { num: "01", title: "Smart Job Matching", desc: "AI that actually understands your profile — not just keywords." },
+              { num: "02", title: "Trusted Employers Only", desc: "Every company manually verified. Zero ghost jobs." },
+              { num: "03", title: "One-Click Apply & Track", desc: "Apply in seconds. See exactly where you stand." },
             ].map((item) => (
               <div
                 key={item.num}
-                className="group relative bg-gradient-to-br from-gray-50 to-white p-8 rounded-3xl shadow-md hover:shadow-2xl border border-gray-100 transition-all duration-400 overflow-hidden hover:-translate-y-2"
+                className="relative bg-gradient-to-br from-gray-50 to-white p-10 rounded-3xl border border-gray-200 shadow-lg hover:shadow-2xl transition-all duration-400 group overflow-hidden hover:-translate-y-2"
               >
-                <div className="absolute -top-10 -right-10 text-9xl font-black text-blue-100/40 group-hover:text-blue-100/70 transition-colors">
+                <div className="absolute -top-12 -right-8 text-9xl font-black text-blue-50 group-hover:text-blue-100/80 transition-colors duration-500">
                   {item.num}
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-5 relative z-10 group-hover:text-blue-700 transition-colors">
+                <h3 className="text-3xl font-extrabold text-gray-800 mb-5 relative z-10 group-hover:text-blue-700 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-gray-700 leading-relaxed text-lg relative z-10">
+                <p className="text-gray-700 text-lg leading-relaxed relative z-10">
+                  {item.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="py-24 px-6 bg-gradient-to-br from-indigo-50 via-blue-50 to-gray-50 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <h2 className="text-5xl font-black text-gray-900 mb-5">
+            Get Hired in 3 Steps
+          </h2>
+          <p className="text-xl text-gray-700 mb-20">
+            Simple, fast, effective — designed for real results
+          </p>
+
+          <div className="grid md:grid-cols-3 gap-16 lg:gap-24 relative">
+            {/* connecting line */}
+            <div className="hidden md:block absolute top-1/3 left-[16%] right-[16%] h-1.5 bg-gradient-to-r from-blue-300 via-indigo-400 to-blue-300 rounded-full z-0"></div>
+
+            {[
+              { step: 1, title: "Create Profile", desc: "Add skills, experience & goals in under 5 minutes." },
+              { step: 2, title: "Get Smart Matches", desc: "See roles that actually fit — no endless scrolling." },
+              { step: 3, title: "Apply & Track", desc: "One-click apply. Real-time status & interview alerts." },
+            ].map((item) => (
+              <div key={item.step} className="relative z-10">
+                <div className="w-28 h-28 mx-auto rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white flex items-center justify-center text-6xl font-black mb-10 shadow-2xl ring-8 ring-white/40 transform group-hover:rotate-6 transition-transform">
+                  {item.step}
+                </div>
+                <h3 className="text-3xl font-extrabold text-gray-900 mb-6">{item.title}</h3>
+                <p className="text-gray-700 text-lg leading-relaxed px-4">
                   {item.desc}
                 </p>
               </div>
@@ -102,13 +124,16 @@ const Home = () => {
       </section>
 
       {/* ===================== POPULAR CATEGORIES ===================== */}
-      <section className="py-20 px-6 bg-gray-50">
+      <section className="py-24 px-6 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-16">
-            Explore Popular Categories
+          <h2 className="text-5xl font-black text-gray-900 mb-5 text-center">
+            Popular Categories
           </h2>
+          <p className="text-xl text-gray-600 text-center mb-16">
+            Find roles that match your skills — updated daily
+          </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { cat: "IT & Software", jobs: "180+" },
               { cat: "Marketing & Sales", jobs: "140+" },
@@ -117,16 +142,16 @@ const Home = () => {
             ].map((item) => (
               <div
                 key={item.cat}
-                className="group bg-white rounded-2xl p-8 text-center shadow hover:shadow-xl hover:-translate-y-3 transition-all duration-300 border border-gray-100 cursor-pointer"
+                className="group bg-white rounded-2xl p-8 text-center border border-gray-200 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-400 hover:-translate-y-3"
               >
-                <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-3xl font-bold group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                <div className="w-20 h-20 mx-auto mb-6 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-4xl font-bold flex items-center justify-center group-hover:scale-110 transition-transform duration-400 shadow-md">
                   {item.cat.charAt(0)}
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-700 transition-colors">
+                <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors">
                   {item.cat}
                 </h3>
-                <p className="text-gray-600 mt-3 font-medium group-hover:text-gray-800">
-                  {item.jobs} Jobs Available
+                <p className="text-gray-600 mt-4 font-semibold text-lg">
+                  {item.jobs} Jobs
                 </p>
               </div>
             ))}
@@ -135,104 +160,21 @@ const Home = () => {
       </section>
 
       {/* ===================== FEATURED OPPORTUNITIES ===================== */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-4xl font-extrabold text-gray-900 text-center mb-6">
-            Featured Opportunities
-          </h2>
-          <p className="text-center text-xl text-gray-600 mb-16">
-            Handpicked high-quality roles from leading companies — updated weekly
-          </p>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[
-              { title: "Senior Frontend Developer (React + Next.js)", company: "TechNova", location: "Remote", salary: "$95k – $135k", tag: "Hot" },
-              { title: "Growth Marketing Manager", company: "ScaleFast", location: "Bangalore Hybrid", salary: "$80k – $115k", tag: "New" },
-              { title: "Lead Data Scientist – AI/ML", company: "InsightCore", location: "Hyderabad", salary: "$110k – $160k", tag: "Featured" },
-            ].map((job, i) => (
-              <div
-                key={i}
-                className="group relative bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-400 border border-gray-200 hover:border-blue-300 flex flex-col"
-              >
-                <div className="absolute top-4 right-4 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  {job.tag}
-                </div>
-                <div className="p-7 flex flex-col flex-grow">
-                  <h3 className="text-2xl font-bold text-gray-900 group-hover:text-blue-700 transition-colors mb-3">
-                    {job.title}
-                  </h3>
-                  <div className="text-gray-700 font-medium mb-2">{job.company}</div>
-                  <div className="flex items-center gap-4 text-gray-600 mb-6">
-                    <span>{job.location}</span>
-                    <span>•</span>
-                    <span className="font-bold text-blue-700">{job.salary}</span>
-                  </div>
-                  <div className="mt-auto">
-                    <button className="w-full bg-blue-600 text-white py-4 rounded-xl font-semibold hover:bg-blue-700 transition">
-                      View Details →
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ===================== GET STARTED IN 3 SIMPLE STEPS ===================== */}
-      <section className="py-20 px-6 bg-gradient-to-b from-gray-50 to-white relative">
-        <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-4xl font-extrabold text-gray-900 mb-16">
-            Get Hired in 3 Simple Steps
-          </h2>
-
-          <div className="grid md:grid-cols-3 gap-10 lg:gap-16 relative">
-            {/* Connecting line on desktop */}
-            <div className="hidden md:block absolute top-24 left-1/4 right-1/4 h-1 bg-gradient-to-r from-blue-200 to-blue-400 rounded-full z-0"></div>
-
-            {[
-              {
-                step: 1,
-                title: "Create Your Profile",
-                desc: "Sign up free and build your professional profile in minutes — add skills, experience & preferences.",
-              },
-              {
-                step: 2,
-                title: "Get Smart Matches",
-                desc: "Browse personalized recommendations or search by role, salary, remote/hybrid, and more.",
-              },
-              {
-                step: 3,
-                title: "Apply & Stay Updated",
-                desc: "One-click apply to dream jobs. Track status, get alerts, and land interviews faster.",
-              },
-            ].map((item) => (
-              <div key={item.step} className="relative z-10">
-                <div className="w-20 h-20 mx-auto rounded-full bg-blue-600 text-white flex items-center justify-center text-4xl font-extrabold mb-8 shadow-xl ring-8 ring-blue-100">
-                  {item.step}
-                </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-5">{item.title}</h3>
-                <p className="text-gray-700 leading-relaxed text-lg px-4 md:px-0">
-                  {item.desc}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      
+      
 
       {/* ===================== CALL TO ACTION ===================== */}
-      <section className="py-24 px-6 bg-blue-600 text-white">
+      <section className="py-28 px-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white">
         <div className="max-w-5xl mx-auto text-center">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-6">
+          <h2 className="text-5xl md:text-6xl font-black mb-8 tracking-tight drop-shadow-md">
             Ready to Land Your Dream Job?
           </h2>
-          <p className="text-xl md:text-2xl mb-10 opacity-90 max-w-3xl mx-auto">
-            Join thousands of professionals who found their next role through JobPortal — start today, it's free.
+          <p className="text-2xl mb-12 max-w-3xl mx-auto opacity-95">
+            Join thousands of professionals who found better opportunities — start free today.
           </p>
           <Link
             to="/register"
-            className="inline-block bg-white text-blue-600 px-12 py-5 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+            className="inline-block bg-white text-blue-700 px-16 py-7 rounded-3xl font-bold text-xl shadow-2xl hover:shadow-3xl hover:scale-105 transition-all duration-300"
           >
             Create Free Account →
           </Link>
@@ -240,10 +182,10 @@ const Home = () => {
       </section>
 
       {/* ===================== FOOTER ===================== */}
-      <footer className="bg-gray-900 text-gray-400 py-12 px-6">
+      <footer className="bg-gray-900 text-gray-400 py-14 px-6">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-lg">© {new Date().getFullYear()} JobPortal. All rights reserved.</p>
-          <div className="mt-6 flex justify-center gap-8 text-sm flex-wrap">
+          <div className="mt-8 flex justify-center gap-10 text-base flex-wrap">
             <a href="#" className="hover:text-white transition">Privacy Policy</a>
             <a href="#" className="hover:text-white transition">Terms of Service</a>
             <a href="#" className="hover:text-white transition">Contact Us</a>
