@@ -340,11 +340,11 @@ const MyResume = () => {
         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">My Profile & Resume</h1>
         <p className="text-gray-600 mb-10">Make your profile stand out to recruiters</p>
 
-        {error && (
+        {/* {error && (
           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg">
             {error}
           </div>
-        )}
+        )} */}
 
         {/* Tabs */}
         <div className="flex flex-wrap border-b mb-10 gap-2">

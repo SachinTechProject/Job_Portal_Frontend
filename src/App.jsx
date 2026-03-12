@@ -23,6 +23,8 @@ import PostJob from './pages/PostJob'
 import AddCompany from './pages/AddCompany'
 import Setting from './pages/Setting'
 import MyResume from './pages/MyResume'
+import CompanyDetails from './pages/CompanyDetails';
+import SeeJobDetails from './pages/SeeJobDetails';
 function App() {
 
 
@@ -53,6 +55,8 @@ function App() {
         <Route path='/add-company' element={<AddCompany/>} />
         <Route path='/setting' element={<Setting/>} />
         <Route path="/myResume" element={<MyResume/>} />
+        <Route path='/companies/:id' element={<CompanyDetails/>} />
+        <Route path='/seejobs/:id' element={<SeeJobDetails/>} />
       </Route>
 
       {/* catch‑all */}

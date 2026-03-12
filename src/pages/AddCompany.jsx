@@ -17,10 +17,8 @@ const AddCompany = () => {
     industry: '',
     companySize: '',
     foundedYear: '',
-    logo: null,
   });
 
-  const [logoPreview, setLogoPreview] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -41,56 +39,50 @@ const AddCompany = () => {
     setError('');
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setFormData((prev) => ({ ...prev, logo: file }));
-    const reader = new FileReader();
-    reader.onloadend = () => setLogoPreview(reader.result);
-    reader.readAsDataURL(file);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    if (!formData.name.trim() || !formData.website.trim() || !formData.location.trim()) {
-      setError('Company name, website and location are required');
+    // Required fields (matching your backend required: true)
+    if (!formData.name.trim()) {
+      setError('Company name is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.website.trim()) {
+      setError('Website is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.location.trim()) {
+      setError('Location is required');
       setLoading(false);
       return;
     }
 
     try {
-      const formPayload = new FormData();
+      const payload = {
+        name: formData.name.trim(),
+        website: formData.website.trim(),
+        location: formData.location.trim(),
+      };
 
-      formPayload.append('name', formData.name.trim());
-      formPayload.append('website', formData.website.trim());
-      formPayload.append('location', formData.location.trim());
-
-      if (formData.description?.trim()) {
-        formPayload.append('description', formData.description.trim());
-      }
-      if (formData.industry?.trim()) {
-        formPayload.append('industry', formData.industry.trim());
-      }
-      if (formData.companySize?.trim()) {
-        formPayload.append('companySize', formData.companySize.trim());
-      }
-      if (formData.foundedYear) {
-        formPayload.append('foundedYear', formData.foundedYear);
-      }
-      if (formData.logo) {
-        formPayload.append('logo', formData.logo);
-      }
+      // Optional fields — only include if filled
+      if (formData.description?.trim()) payload.description = formData.description.trim();
+      if (formData.industry?.trim()) payload.industry = formData.industry.trim();
+      if (formData.companySize?.trim()) payload.companySize = formData.companySize.trim();
+      if (formData.foundedYear) payload.foundedYear = Number(formData.foundedYear);
+      // address is not in schema → backend ignores it (you can remove the field if you want)
 
       const res = await axios.post(
         'http://localhost:5000/api/company/register-company',
-        formPayload,
+        payload,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
           },
         }
       );
@@ -104,7 +96,10 @@ const AddCompany = () => {
         setError('Unexpected response from server');
       }
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to register company';
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        'Failed to register company. Please try again.';
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -164,7 +159,7 @@ const AddCompany = () => {
             </div>
           </div>
 
-          {/* Right column - Form */}
+          {/* Right column - Form (no logo section anymore) */}
           <div className="lg:col-span-8">
             <div className="bg-white border border-gray-200 p-10 lg:p-14">
               {error && (
@@ -222,7 +217,7 @@ const AddCompany = () => {
                       onChange={handleChange}
                       required
                       className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
-                      placeholder="e.g. Bengaluru, Karnataka"
+                      placeholder="e.g. Hyderabad, Telangana"
                     />
                   </div>
 
@@ -238,35 +233,6 @@ const AddCompany = () => {
                       className="w-full px-5 py-3.5 border border-gray-300 focus:border-black focus:ring-0 outline-none transition"
                       placeholder="YYYY"
                     />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Logo (recommended square, min 200×200)
-                  </label>
-                  <div className="flex flex-col sm:flex-row gap-8 items-start">
-                    <div className="w-40 h-40 border-2 border-gray-300 flex items-center justify-center bg-gray-50 overflow-hidden">
-                      {logoPreview ? (
-                        <img src={logoPreview} alt="preview" className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-gray-400 text-sm">No logo</span>
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <label className="inline-block px-6 py-3.5 bg-gray-100 hover:bg-gray-200 border border-gray-300 cursor-pointer transition">
-                        Select Image
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="hidden"
-                        />
-                      </label>
-                      <p className="mt-3 text-sm text-gray-500">
-                        PNG / JPG / WebP • Max 4 MB
-                      </p>
-                    </div>
                   </div>
                 </div>
 
