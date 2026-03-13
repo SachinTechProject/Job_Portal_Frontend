@@ -5,7 +5,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const Companies = () => {
-  const { role } = useContext(AuthContext);
+  const { role, user } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [companies, setCompanies] = useState([]);
@@ -15,10 +15,13 @@ const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [locations, setLocations] = useState([]);
+  const [actionLoading, setActionLoading] = useState({});
   const [stats, setStats] = useState({
     total: 0,
     withWebsite: 0,
-    recent: 0
+    recent: 0,
+    totalLikes: 0,
+    totalFollowers: 0
   });
 
   const token = localStorage.getItem("token");
@@ -35,11 +38,14 @@ const Companies = () => {
           },
         });
 
+        console.log("this is companys", response)
+
         const companyList = response.data.allcompany || response.data.companies || response.data || [];
         const companiesArray = Array.isArray(companyList) ? companyList : [];
         
         setCompanies(companiesArray);
         setFilteredCompanies(companiesArray);
+        console.log("this company list", companiesArray)
         
         // Extract unique locations
         const uniqueLocations = [...new Set(companiesArray
@@ -55,7 +61,9 @@ const Companies = () => {
         setStats({
           total: companiesArray.length,
           withWebsite: companiesArray.filter(c => c.website).length,
-          recent: companiesArray.filter(c => new Date(c.createdAt) > thirtyDaysAgo).length
+          recent: companiesArray.filter(c => new Date(c.createdAt) > thirtyDaysAgo).length,
+          totalLikes: companiesArray.reduce((acc, c) => acc + (c.totalLikes || 0), 0),
+          totalFollowers: companiesArray.reduce((acc, c) => acc + (c.totalFollowers || 0), 0)
         });
         
       } catch (err) {
@@ -90,6 +98,116 @@ const Companies = () => {
     setFilteredCompanies(filtered);
   }, [searchTerm, selectedLocation, companies]);
 
+  const handleLike = async (companyId) => {
+    if (!token) {
+      alert('Please login to like companies');
+      return;
+    }
+
+    setActionLoading(prev => ({ ...prev, [companyId]: 'like' }));
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/company/companies/${companyId}/like`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Get current user ID from context or token
+      const currentUserId = user?.id || user?._id;
+      
+      // Update the company in the list
+      setCompanies(prevCompanies => 
+        prevCompanies.map(company => {
+          if (company._id === companyId) {
+            // Check if user already liked this company
+            const hasLiked = company.likes?.includes(currentUserId);
+            
+            // Update likes array
+            let updatedLikes = [...(company.likes || [])];
+            if (hasLiked) {
+              updatedLikes = updatedLikes.filter(id => id !== currentUserId);
+            } else {
+              updatedLikes.push(currentUserId);
+            }
+            
+            return { 
+              ...company, 
+              totalLikes: response.data.totalLikes || updatedLikes.length,
+              likes: updatedLikes
+            };
+          }
+          return company;
+        })
+      );
+
+    } catch (err) {
+      console.error('Like error:', err);
+      alert(err.response?.data?.message || 'Failed to like company');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [companyId]: null }));
+    }
+  };
+
+  const handleFollow = async (companyId) => {
+    if (!token) {
+      alert('Please login to follow companies');
+      return;
+    }
+
+    setActionLoading(prev => ({ ...prev, [companyId]: 'follow' }));
+
+    try {
+      const response = await axios.post(
+        `http://localhost:5000/api/company/companies/${companyId}/follow`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Get current user ID from context or token
+      const currentUserId = user?.id || user?._id;
+
+      // Update the company in the list
+      setCompanies(prevCompanies => 
+        prevCompanies.map(company => {
+          if (company._id === companyId) {
+            // Check if user already follows this company
+            const hasFollowed = company.followers?.includes(currentUserId);
+            
+            // Update followers array
+            let updatedFollowers = [...(company.followers || [])];
+            if (hasFollowed) {
+              updatedFollowers = updatedFollowers.filter(id => id !== currentUserId);
+            } else {
+              updatedFollowers.push(currentUserId);
+            }
+            
+            return { 
+              ...company, 
+              totalFollowers: response.data.totalFollowers || updatedFollowers.length,
+              followers: updatedFollowers
+            };
+          }
+          return company;
+        })
+      );
+
+    } catch (err) {
+      console.error('Follow error:', err);
+      alert(err.response?.data?.message || 'Failed to follow company');
+    } finally {
+      setActionLoading(prev => ({ ...prev, [companyId]: null }));
+    }
+  };
+
   const handleDelete = async (companyId, companyName) => {
     if (!window.confirm(`Are you sure you want to delete "${companyName}"? This action cannot be undone.`)) {
       return;
@@ -112,9 +230,28 @@ const Companies = () => {
     }
   };
 
+  // Helper function to check if current user liked the company
+  const isLikedByUser = (company) => {
+    const currentUserId = user?.id || user?._id;
+    return company.likes?.includes(currentUserId) || false;
+  };
+
+  // Helper function to check if current user follows the company
+  const isFollowedByUser = (company) => {
+    const currentUserId = user?.id || user?._id;
+    return company.followers?.includes(currentUserId) || false;
+  };
+
   const clearFilters = () => {
     setSearchTerm('');
     setSelectedLocation('all');
+  };
+
+  // Format number for display (e.g., 1000 -> 1K)
+  const formatNumber = (num) => {
+    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+    return num;
   };
 
   return (
@@ -132,18 +269,26 @@ const Companies = () => {
           </div>
           
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center border border-white/20">
-              <div className="text-4xl font-bold mb-2">{stats.total}</div>
-              <div className="text-blue-200">Total Companies</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-12">
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 text-center border border-white/20">
+              <div className="text-3xl font-bold mb-1">{stats.total}</div>
+              <div className="text-sm text-blue-200">Total Companies</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center border border-white/20">
-              <div className="text-4xl font-bold mb-2">{stats.withWebsite}</div>
-              <div className="text-blue-200">Companies with Websites</div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 text-center border border-white/20">
+              <div className="text-3xl font-bold mb-1">{stats.withWebsite}</div>
+              <div className="text-sm text-blue-200">With Websites</div>
             </div>
-            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-6 text-center border border-white/20">
-              <div className="text-4xl font-bold mb-2">{stats.recent}</div>
-              <div className="text-blue-200">Joined in Last 30 Days</div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 text-center border border-white/20">
+              <div className="text-3xl font-bold mb-1">{stats.recent}</div>
+              <div className="text-sm text-blue-200">New (30d)</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 text-center border border-white/20">
+              <div className="text-3xl font-bold mb-1">{formatNumber(stats.totalLikes)}</div>
+              <div className="text-sm text-blue-200">Total Likes</div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-lg rounded-xl p-4 text-center border border-white/20">
+              <div className="text-3xl font-bold mb-1">{formatNumber(stats.totalFollowers)}</div>
+              <div className="text-sm text-blue-200">Total Followers</div>
             </div>
           </div>
         </div>
@@ -205,7 +350,7 @@ const Companies = () => {
 
           {/* Active Filters */}
           {(searchTerm || selectedLocation !== 'all') && (
-            <div className="mt-4 flex items-center gap-4">
+            <div className="mt-4 flex items-center gap-4 flex-wrap">
               <span className="text-sm text-gray-600">Active Filters:</span>
               {searchTerm && (
                 <span className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">
@@ -317,103 +462,179 @@ const Companies = () => {
         {/* Companies Grid */}
         {!loading && !error && filteredCompanies.length > 0 && (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredCompanies.map((company) => (
-              <div
-                key={company._id}
-                className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100"
-              >
-                {/* Company Header with Gradient */}
-                <div className="h-3 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
-                
-                <div className="p-6">
-                  {/* Company Name and Icon */}
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-                        {company.name}
-                      </h3>
-                    </div>
-                    <div className="ml-4 flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
-                        <span className="text-2xl">🏢</span>
+            {filteredCompanies.map((company) => {
+              const likedByUser = isLikedByUser(company);
+              const followedByUser = isFollowedByUser(company);
+              
+              return (
+                <div
+                  key={company._id}
+                  className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden border border-gray-100"
+                >
+                  {/* Company Header with Gradient */}
+                  <div className="h-3 bg-gradient-to-r from-blue-500 to-indigo-600"></div>
+                  
+                  <div className="p-6">
+                    {/* Company Name and Icon */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
+                          {company.name}
+                        </h3>
+                      </div>
+                      <div className="ml-4 flex-shrink-0">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                          <span className="text-2xl">🏢</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Location */}
-                  <div className="flex items-center text-gray-600 mb-4">
-                    <svg className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span className="text-sm">
-                      {company.location || 'Location not specified'}
-                    </span>
-                  </div>
-
-                  {/* Website */}
-                  {company.website && (
+                    {/* Location */}
                     <div className="flex items-center text-gray-600 mb-4">
                       <svg className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      <a
-                        href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate"
-                      >
-                        {company.website.replace(/^https?:\/\//, '')}
-                      </a>
+                      <span className="text-sm">
+                        {company.location || 'Location not specified'}
+                      </span>
                     </div>
-                  )}
 
-                  {/* Meta Info */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
-                    <div className="flex items-center">
-                      <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Joined {new Date(company.createdAt).toLocaleDateString('en-US', {
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </div>
-                    
-                    {company.updatedAt && company.updatedAt !== company.createdAt && (
-                      <div className="flex items-center">
-                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    {/* Website */}
+                    {company.website && (
+                      <div className="flex items-center text-gray-600 mb-4">
+                        <svg className="h-5 w-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                         </svg>
-                        Updated
+                        <a
+                          href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-800 hover:underline truncate"
+                        >
+                          {company.website.replace(/^https?:\/\//, '')}
+                        </a>
                       </div>
                     )}
+
+                    {/* Engagement Stats */}
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="flex items-center text-gray-600">
+                        <svg className="h-5 w-5 text-red-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm font-medium">{formatNumber(company.totalLikes || 0)}</span>
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <svg className="h-5 w-5 text-blue-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 10.5a1.5 1.5 0 113 0v6a1.5 1.5 0 01-3 0v-6zM6 10.333v5.43a2 2 0 001.106 1.79l.05.025A4 4 0 008.943 18h5.416a2 2 0 001.962-1.608l1.2-6A2 2 0 0015.56 8H12V4a2 2 0 00-2-2 1 1 0 00-1 1v.667a4 4 0 01-.8 2.4L6.8 7.933a4 4 0 00-.8 2.4z" />
+                        </svg>
+                        <span className="text-sm font-medium">{formatNumber(company.totalFollowers || 0)}</span>
+                      </div>
+                      <div className="flex items-center text-gray-600">
+                        <svg className="h-5 w-5 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                          <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                        </svg>
+                        <span className="text-sm font-medium">{formatNumber(company.totalJobsPosted || 0)}</span>
+                      </div>
+                    </div>
+
+                    {/* Meta Info */}
+                    <div className="flex items-center justify-between text-xs text-gray-500 mt-4 pt-4 border-t border-gray-100">
+                      <div className="flex items-center">
+                        <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        Joined {new Date(company.createdAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </div>
+                      
+                      {company.updatedAt && company.updatedAt !== company.createdAt && (
+                        <div className="flex items-center">
+                          <svg className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          Updated
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                    {/* Like and Follow Buttons */}
+                    <div className="flex gap-2 mb-3">
+                      <button
+                        onClick={() => handleLike(company._id)}
+                        disabled={actionLoading[company._id] === 'like'}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium transition-all ${
+                          likedByUser
+                            ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        } ${actionLoading[company._id] === 'like' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {actionLoading[company._id] === 'like' ? (
+                          <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <svg className={`h-5 w-5 ${likedByUser ? 'fill-current' : ''}`} fill={likedByUser ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                            </svg>
+                            <span>{likedByUser ? 'Liked' : 'Like'}</span>
+                          </>
+                        )}
+                      </button>
+
+                      <button
+                        onClick={() => handleFollow(company._id)}
+                        disabled={actionLoading[company._id] === 'follow'}
+                        className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl font-medium transition-all ${
+                          followedByUser
+                            ? 'bg-blue-50 text-blue-600 hover:bg-blue-100'
+                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        } ${actionLoading[company._id] === 'follow' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {actionLoading[company._id] === 'follow' ? (
+                          <div className="h-5 w-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                          <>
+                            <svg className={`h-5 w-5 ${followedByUser ? 'fill-current' : ''}`} fill={followedByUser ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                            </svg>
+                            <span>{followedByUser ? 'Following' : 'Follow'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+
+                    {/* View Details and Delete Buttons */}
+                    <div className="flex gap-2">
+                      <Link
+                        to={`/companies/${company._id}`}
+                        className="flex-1 text-center py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                      >
+                        View Details
+                      </Link>
+
+                      {role === 'admin' && (
+                        <button
+                          onClick={() => handleDelete(company._id, company.name)}
+                          className="px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                          title="Delete Company"
+                        >
+                          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-
-                {/* Action Buttons */}
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex gap-3">
-                  <Link
-                    to={`/companies/${company._id}`}
-                    className="flex-1 text-center py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    View Details
-                  </Link>
-
-                  {role === 'admin' && (
-                    <button
-                      onClick={() => handleDelete(company._id, company.name)}
-                      className="px-4 py-2.5 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition-colors focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-                      title="Delete Company"
-                    >
-                      <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

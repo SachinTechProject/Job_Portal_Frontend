@@ -25,6 +25,7 @@ import Setting from './pages/Setting'
 import MyResume from './pages/MyResume'
 import CompanyDetails from './pages/CompanyDetails';
 import SeeJobDetails from './pages/SeeJobDetails';
+import Chatbot from './components/Chatbot';
 function App() {
 
 
@@ -41,6 +42,7 @@ function App() {
       <Route path='/home' element={<Home/>} />
       <Route path='/register' element={<Register/>} />
       <Route path='/login' element={<Login/>} />
+      <Route path="/chat" element={<Chatbot/>} />
 
       {/* anything inside this <Route> will check auth first */}
       <Route element={<PrivateRoute />}>

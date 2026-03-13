@@ -53,6 +53,9 @@ const Header = () => {
               <Link to="/companies" className="text-gray-700 hover:text-indigo-600 font-medium">
                 Companies
               </Link>
+              {/* <Link to="/chat" className="text-gray-700 hover:text-indigo-600 font-medium">
+                Chat
+              </Link> */}
             </nav>
 
             {/* Desktop Right */}
@@ -199,6 +202,14 @@ const Header = () => {
                   >
                     Settings
                   </Link>
+                   <Link
+                    to="/chat"
+                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Help Desk
+                  </Link>
+
 
 
 
@@ -234,6 +245,13 @@ const Header = () => {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Create Account
+                  </Link>
+                      <Link
+                    to="/chat"
+                    className="block px-5 py-3.5 border border-indigo-600 text-indigo-600 rounded-lg text-center hover:bg-indigo-50 transition font-medium mt-3"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    Help Desk
                   </Link>
                 </>
               )}
