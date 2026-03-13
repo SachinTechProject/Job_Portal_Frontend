@@ -5,7 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 import Logout from '../Button/Logout';
 
 const Header = () => {
-  const { isLogin, user, logout, role } = useContext(AuthContext);
+  const { isLogin, user, logout, role, userName } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false); // unified for mobile & offcanvas
@@ -16,6 +16,7 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  console.log("this is the sachin",user)
   const getInitials = (name) => {
     if (!name) return 'U';
     return name
@@ -25,6 +26,11 @@ const Header = () => {
       .toUpperCase()
       .substring(0, 2);
   };
+  const getHomeRoute = () => {
+  if (!isLogin) return "/";
+  if (role === "admin") return "/admin";
+  return "/dashboard";
+};
 
   return (
     <>
@@ -32,18 +38,12 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
 
-            {/* Logo */}
-            <div className="flex-shrink-0">
-              { !isLogin ?
-              <Link to="/" className="flex items-center space-x-2">
-                <span className="text-2xl font-bold text-indigo-600">Job</span>
-                <span className="text-2xl font-bold text-gray-900">Hub</span>
-              </Link> : <Link to="/dashboard" className="flex items-center space-x-2">
-                <span className="text-2xl font-bold text-indigo-600">Job</span>
-                <span className="text-2xl font-bold text-gray-900">Hub</span>
-              </Link> 
-             }
-            </div>
+           <div className="flex-shrink-0">
+  <Link to={getHomeRoute()} className="flex items-center space-x-2">
+    <span className="text-2xl font-bold text-indigo-600">Job</span>
+    <span className="text-2xl font-bold text-gray-900">Hub</span>
+  </Link>
+</div>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-10">
@@ -171,20 +171,24 @@ const Header = () => {
                   </Link>
 
                    {
-                    role === "admin" || "recruiter" ? <Link
+                    role === "admin"   ? <Link
                     to="/add-company"
                     onClick={() => setIsMenuOpen(false)}
                     className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                   >
                     Add Company
-                  </Link>: <Link
+                  </Link>: ""
+
+                  }
+
+                  {
+                    role === "recruiter" ?  <Link
                     to="/companies"
                     onClick={() => setIsMenuOpen(false)}
                     className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                   >
                    see Company
-                  </Link>
-
+                  </Link>: ""
                   }
                   
 
@@ -199,33 +203,19 @@ const Header = () => {
 
 
                    {
-                    role === "admin" || "recruiter" ? <Link
+                    role === "admin" ? <Link
                     to="/post-job"
                     onClick={() => setIsMenuOpen(false)}
                     className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
                   >
-                    Job
-                  </Link>: <Link
-                    to="/post-job"
-                    onClick={() => setIsMenuOpen(false)}
-                    className="block px-4 py-3 text-gray-700 hover:bg-indigo-200 rounded-lg transition"
-                  >
-                  Post a Jobs
+                   Post a  Jobs
                   </Link>
-
+                                   
+                  :""
                   }
-
-                  
-                 
+    
                   <div className="border-t border-gray-200 my-3"></div>
                   
-
-                  {/* <button
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
-                  >
-                    Log Out
-                  </button> */}
                   <Logout/>
                 </>
               ) : (

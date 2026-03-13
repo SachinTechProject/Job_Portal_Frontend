@@ -35,6 +35,8 @@ export const UserContext = ({children}) => {
         }
     });
 
+    const [user, setUser] = useState()
+
     // Effect to check token expiration periodically or on mount
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -70,7 +72,7 @@ export const UserContext = ({children}) => {
     }, [navigate]);
 
     return(
-        <AuthContext.Provider value={{isLogin, setIsLogin, setRole, role}}>
+        <AuthContext.Provider value={{isLogin, setIsLogin, setRole, role, user, setUser}}>
             {children}
         </AuthContext.Provider>
         

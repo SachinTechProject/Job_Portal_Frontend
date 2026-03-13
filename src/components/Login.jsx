@@ -7,7 +7,7 @@ import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
   const navigate = useNavigate();
-  const {setIsLogin, setRole} = useContext(AuthContext)
+  const {setIsLogin, setRole, setUser} = useContext(AuthContext)
 
   const [formData, setFormData] = useState({
     email: '',
@@ -53,6 +53,7 @@ const Login = () => {
       const data = await res.json();
       console.log("login response", data.user.role);
       setRole(data.user.role)
+      setUser(data.user)
 
       if (!res.ok) {
         throw new Error(data.message || 'Login failed');
