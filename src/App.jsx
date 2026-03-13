@@ -55,7 +55,7 @@ function App() {
         <Route path='/companies' element={<Companies/>} />
         <Route path='/post-job' element={<PostJob/>} />
         <Route path='/add-company' element={<AddCompany/>} />
-        <Route path='/setting' element={<Setting/>} />
+        <Route path='/settings' element={<Setting/>} />
         <Route path="/myResume" element={<MyResume/>} />
         <Route path='/companies/:id' element={<CompanyDetails/>} />
         <Route path='/seejobs/:id' element={<SeeJobDetails/>} />

@@ -16,16 +16,16 @@ const AdminDashboard = () => {
           <Link to="/admin/users" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
             Users Management
           </Link>
-          <Link to="/admin/jobs" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
+          <Link to="/jobs" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
             Jobs & Moderation
           </Link>
-          <Link to="/admin/companies" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
+          <Link to="/companies" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
             Companies
           </Link>
           <Link to="/admin/reports" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
             Reports & Analytics
           </Link>
-          <Link to="/admin/settings" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
+          <Link to="/setting" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
             Platform Settings
           </Link>
           <Link to="/admin/subscriptions" className="block px-4 py-3 rounded-lg hover:bg-gray-800">
