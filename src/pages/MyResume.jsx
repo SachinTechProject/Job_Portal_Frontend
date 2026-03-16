@@ -76,7 +76,7 @@ const MyResume = () => {
       setError('');
       try {
         // Fetch Resume (personal)
-        const resResume = await axios.get(`${config.API_BASE_URL}/resume/getResum`, {
+        const resResume = await axios.get(`${config.API_BASE_URL}/resume/getResume`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
