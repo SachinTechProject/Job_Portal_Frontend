@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext'; // adjust path if needed
 import { toast } from "react-hot-toast";
+import config from '../config';
 
 
 const MyResume = () => {
@@ -75,7 +76,7 @@ const MyResume = () => {
       setError('');
       try {
         // Fetch Resume (personal)
-        const resResume = await axios.get('http://localhost:5000/api/resume/getResume', {
+        const resResume = await axios.get(`${config.API_BASE_URL}/resume/getResume`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -101,13 +102,13 @@ const MyResume = () => {
         }
 
         // Fetch Educations
-        const resEdu = await axios.get('http://localhost:5000/api/education/getEducation', {
+        const resEdu = await axios.get(`${config.API_BASE_URL}/education/getEducation`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setEducations(resEdu.data.education || resEdu.data.educations || []);
 
         // Fetch Experiences
-        const resExp = await axios.get('http://localhost:5000/api/experience/getExperience', {
+        const resExp = await axios.get(`${config.API_BASE_URL}/experience/getExperience`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setExperiences(resExp.data.experience || resExp.data.experiences || []);
@@ -143,7 +144,7 @@ const MyResume = () => {
         preferredLocation: personalForm.preferredLocation.split(',').map((l) => l.trim()).filter(Boolean),
       };
 
-      const res = await axios.post('http://localhost:5000/api/resume/addResume', payload, {
+      const res = await axios.post(`${config.API_BASE_URL}/resume/addResume`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -185,7 +186,7 @@ const MyResume = () => {
       if (educationForm.educationId) {
         // Update
         res = await axios.put(
-          `http://localhost:5000/api/education/update-education/${educationForm.educationId}`,
+          `${config.API_BASE_URL}/education/update-education/${educationForm.educationId}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -200,7 +201,7 @@ const MyResume = () => {
         }
       } else {
         // Create
-        res = await axios.post('http://localhost:5000/api/education/addEducation', payload, {
+        res = await axios.post(`${config.API_BASE_URL}/education/addEducation`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -273,7 +274,7 @@ const MyResume = () => {
 
       if (experienceForm.experienceId) {
         res = await axios.put(
-          `http://localhost:5000/api/experience/update-experience/${experienceForm.experienceId}`,
+          `${config.API_BASE_URL}experience/update-experience/${experienceForm.experienceId}`,
           payload,
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -287,7 +288,7 @@ const MyResume = () => {
           );
         }
       } else {
-        res = await axios.post('http://localhost:5000/api/experience/addExperience', payload, {
+        res = await axios.post(`${config.API_BASE_URL}/experience/addExperience`, payload, {
           headers: { Authorization: `Bearer ${token}` },
         });
 

@@ -3,6 +3,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import config from '../config';
 
 const Companies = () => {
   const { role, user } = useContext(AuthContext);
@@ -32,7 +33,7 @@ const Companies = () => {
         setLoading(true);
         setError(null);
 
-        const response = await axios.get('http://localhost:5000/api/company/get-companys', {
+        const response = await axios.get(`${config.API_BASE_URL}/company/get-companys`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -108,7 +109,7 @@ const Companies = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/company/companies/${companyId}/like`,
+        `${config.API_BASE_URL}/company/companies/${companyId}/like`,
         {},
         {
           headers: {
@@ -163,7 +164,7 @@ const Companies = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:5000/api/company/companies/${companyId}/follow`,
+        `${config.API_BASE_URL}/company/companies/${companyId}/follow`,
         {},
         {
           headers: {
@@ -214,7 +215,7 @@ const Companies = () => {
     }
 
     try {
-      await axios.delete(`http://localhost:5000/api/company/delete-company/${companyId}`, {
+      await axios.delete(`${config.API_BASE_URL}/company/delete-company/${companyId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

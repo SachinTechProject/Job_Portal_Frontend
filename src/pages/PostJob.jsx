@@ -17,6 +17,7 @@ import {
   CheckCircleIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline';
+import config from '../config';
 
 const PostJob = () => {
   const { isLogin, role } = useContext(AuthContext);
@@ -65,7 +66,7 @@ const PostJob = () => {
 
     const fetchMyCompanies = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/company/getadmincompany', {
+        const res = await axios.get(`${config.API_BASE_URL}/company/getadmincompany`, {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
         const comps = res.data.allcompany || [];
@@ -126,7 +127,7 @@ const PostJob = () => {
       };
 
       const res = await axios.post(
-        'http://localhost:5000/api/jobs/createjob',
+        `${config.API_BASE_URL}/jobs/createjob`,
         payload,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );

@@ -3,6 +3,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
+import config from '../config';
 
 const AddCompany = () => {
   const { isLogin, role } = useContext(AuthContext);
@@ -62,6 +63,25 @@ const AddCompany = () => {
       return;
     }
 
+    if (!formData.description.trim()) {
+      setError('Location is required');
+      setLoading(false);
+      return;
+    }
+     if (!formData.industry.trim()) {
+      setError('Location is required');
+      setLoading(false);
+      return;
+    }
+    if (!formData.foundedYear.trim()) {
+      setError('Location is required');
+      setLoading(false);
+      return;
+    }
+    
+
+
+
     try {
       const payload = {
         name: formData.name.trim(),
@@ -77,7 +97,7 @@ const AddCompany = () => {
       // address is not in schema → backend ignores it (you can remove the field if you want)
 
       const res = await axios.post(
-        'http://localhost:5000/api/company/register-company',
+        `${config.API_BASE_URL}/company/register-company`,
         payload,
         {
           headers: {
@@ -147,6 +167,8 @@ const AddCompany = () => {
                     <li>Company name</li>
                     <li>Website</li>
                     <li>Location</li>
+                    <li>Description</li>
+                    <li>Industry</li>
                   </ul>
                 </div>
                 <div>
@@ -223,7 +245,7 @@ const AddCompany = () => {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Founded Year
+                      Founded Year *
                     </label>
                     <input
                       type="number"
@@ -238,7 +260,7 @@ const AddCompany = () => {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Short Description
+                   Description *
                   </label>
                   <textarea
                     name="description"
@@ -253,7 +275,7 @@ const AddCompany = () => {
                 <div className="grid md:grid-cols-2 gap-10">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Industry
+                      Industry *
                     </label>
                     <select
                       name="industry"
