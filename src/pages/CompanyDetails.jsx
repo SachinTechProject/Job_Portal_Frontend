@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import config from '../config';
 
 const CompanyDetails = () => {
   const { id } = useParams();
@@ -21,7 +22,7 @@ const CompanyDetails = () => {
 
         // Adjust endpoint if your backend uses a different path
         // Example: /api/company/:id or /api/company/get-company/:id
-        const response = await axios.get(`http://localhost:5000/api/company/get-companys/${id}`, {
+        const response = await axios.get(`${config.API_BASE_URL}/company/get-companys/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

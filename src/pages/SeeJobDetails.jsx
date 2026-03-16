@@ -21,6 +21,7 @@ import {
   PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolid } from '@heroicons/react/24/solid';
+import config from '../config';
 
 const SeeJobDetails = () => {
   const { id } = useParams();
@@ -39,7 +40,7 @@ const SeeJobDetails = () => {
     const fetchJobDetails = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`http://localhost:5000/api/jobs/getjobbyid/${id}`, {
+        const response = await axios.get(`${config.API_BASE_URL}/jobs/getjobbyid/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         // console.log("this option", response)
