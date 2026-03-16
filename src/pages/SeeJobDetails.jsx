@@ -45,7 +45,7 @@ const SeeJobDetails = () => {
         // console.log("this option", response)
 
         if (response.data.success) {
-            console.log("this is the data",response.data.jobs)
+            // console.log("this is the data",response.data.jobs)
           setJob(response.data.jobs);
           
           // Fetch similar jobs based on title or skills
@@ -70,7 +70,7 @@ const SeeJobDetails = () => {
         console.error('Error fetching similar jobs:', err);
       }
     };
-
+console.log("this is my job")
     fetchJobDetails();
 
     // Check if job is saved
@@ -450,9 +450,11 @@ const SeeJobDetails = () => {
                       </div>
                     )}
 
-                    <button className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors font-medium">
-                      View Company Profile
-                    </button>
+                    <Link  to={`/companies/${job.company._id}`} >
+                    <button className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors font-medium"> 
+                      View Company Profile</button>
+                     
+                    </Link>
                   </div>
                 </div>
               )}
