@@ -148,7 +148,7 @@ const PostJob = () => {
       return formData.title && formData.position && formData.description;
     }
     if (step === 2) {
-      return formData.requirements;
+      return formData.requirements && formData.skills;
     }
     if (step === 3) {
       return formData.salary && formData.location;
@@ -433,12 +433,13 @@ const PostJob = () => {
                     <div className="space-y-3">
                       <label className="flex items-center gap-2 text-sm font-semibold text-slate-700">
                         <AcademicCapIcon className="h-4 w-4" />
-                        Skills
+                        Skills <span className="text-red-500">*</span>
                       </label>
                       <input
                         type="text"
                         name="skills"
                         value={formData.skills}
+                        required
                         onChange={handleChange}
                         placeholder="Next.js, Tailwind, Git (comma-separated)"
                         className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
