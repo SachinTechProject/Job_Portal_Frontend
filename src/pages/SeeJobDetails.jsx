@@ -71,7 +71,7 @@ const SeeJobDetails = () => {
         console.error('Error fetching similar jobs:', err);
       }
     };
-console.log("this is my job")
+console.log("this is my job",job)
     fetchJobDetails();
 
     // Check if job is saved

@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import Logout from '../Button/Logout';
 
-const Header = () => {
+const Header = () => { 
   const { isLogin, user, logout, role, userName } = useContext(AuthContext);
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,12 +28,12 @@ const Header = () => {
     setIsProfileMenuOpen(false);
   }, [location]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-    setIsMenuOpen(false);
-    setIsProfileMenuOpen(false);
-  };
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate('/');
+  //   setIsMenuOpen(false);
+  //   setIsProfileMenuOpen(false);
+  // };
 
   const getInitials = (name) => {
     if (!name) return 'U';
@@ -198,12 +198,8 @@ const Header = () => {
                         
                         <div className="border-t border-gray-100 my-2"></div>
                         
-                        <button
-                          onClick={handleLogout}
-                          className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                        >
-                          <span className="text-lg">🚪</span>
-                          <span>Logout</span>
+                        <button>
+                             <Logout/>
                         </button>
                       </div>
                     </>
@@ -336,11 +332,8 @@ const Header = () => {
                 <div className="border-t border-gray-200 my-3"></div>
                 
                 <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3.5 text-red-600 hover:bg-red-50 rounded-xl transition-all"
-                >
-                  <span className="text-xl">🚪</span>
-                  <span className="font-medium">Logout</span>
+             >
+                 <Logout/>
                 </button>
               </>
             ) : (
