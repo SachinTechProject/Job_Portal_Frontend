@@ -26,6 +26,10 @@ import MyResume from './pages/MyResume'
 import CompanyDetails from './pages/CompanyDetails';
 import SeeJobDetails from './pages/SeeJobDetails';
 import Chatbot from './components/Chatbot';
+import ApplyJob from './pages/ApplyJob';
+import SeeAllAppliedJobs from './pages/SeeAllAppliedJobs';
+import JobApplicants from './pages/JobApplicants';
+import UserActivity from './pages/UserActivity';
 function App() {
 
 
@@ -59,6 +63,10 @@ function App() {
         <Route path="/myResume" element={<MyResume/>} />
         <Route path='/companies/:id' element={<CompanyDetails/>} />
         <Route path='/seejobs/:id' element={<SeeJobDetails/>} />
+        <Route path="/apply/:id" element={<ApplyJob />} />
+        <Route path='/applyedJob' element={<SeeAllAppliedJobs/>} />
+        <Route path="/job-applicants/:jobId" element={<JobApplicants />} />
+        <Route path="/activity" element={<UserActivity />} />
       </Route>
 
       {/* catch‑all */}

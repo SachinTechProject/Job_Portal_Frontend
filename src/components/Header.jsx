@@ -56,7 +56,8 @@ const Header = () => {
     const items = [
       { name: 'Find Jobs', path: '/jobs', icon: '💼' },
       { name: 'Companies', path: '/companies', icon: '🏢' },
-      { name: 'Help Desk', path: '/chat', icon: '💬' }
+      { name: 'Help Desk', path: '/chat', icon: '💬' },
+      
     ];
 
     if (role === 'admin') {
@@ -65,6 +66,7 @@ const Header = () => {
         { name: 'Post Job', path: '/post-job', icon: '📝' }
       );
     }
+    if(role !== 'admin') items.push({ name: 'Applied', path: '/applyedJob' , icon: '📄'} )
 
     if (role === 'recruiter') {
       items.push({ name: 'My Companies', path: '/companies', icon: '🏢' });
@@ -198,7 +200,7 @@ const Header = () => {
                         
                         <div className="border-t border-gray-100 my-2"></div>
                         
-                        <button>
+                        <button className='w-full'>
                              <Logout/>
                         </button>
                       </div>
@@ -331,10 +333,10 @@ const Header = () => {
                 
                 <div className="border-t border-gray-200 my-3"></div>
                 
-                <button
-             >
+                <div className='w-full'>
+             
                  <Logout/>
-                </button>
+                </div>
               </>
             ) : (
               <div className="mt-6 space-y-3 p-4">

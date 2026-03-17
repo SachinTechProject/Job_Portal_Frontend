@@ -52,14 +52,13 @@ console.log("this is the error")
 
   return (
     <>
-   
-    <button
+       <div
       onClick={handleLogout}
-      className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
-    >
+      className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors" >
+   
       <span className="text-lg">🚪</span>
      <span>Logout</span> 
-    </button> 
+    </div> 
     </>
   );
 };

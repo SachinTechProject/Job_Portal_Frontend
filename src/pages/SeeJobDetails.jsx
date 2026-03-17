@@ -1,7 +1,8 @@
 // src/pages/SeeJobDetails.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import {
   BriefcaseIcon,
   MapPinIcon,
@@ -26,16 +27,19 @@ import config from '../config';
 const SeeJobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, isLogin, role } = useContext(AuthContext);
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [saved, setSaved] = useState(false);
   const [applied, setApplied] = useState(false);
   const [similarJobs, setSimilarJobs] = useState([]);
+  const [applying, setApplying] = useState(false);
+  const [checkingApplication, setCheckingApplication] = useState(false);
 
   const token = localStorage.getItem("token");
 
-//   console.log("this is the id", id)
+  // Fetch job details and check application status
   useEffect(() => {
     const fetchJobDetails = async () => {
       try {
@@ -43,14 +47,9 @@ const SeeJobDetails = () => {
         const response = await axios.get(`${config.API_BASE_URL}/jobs/getjobbyid/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // console.log("this option", response)
 
         if (response.data.success) {
-            // console.log("this is the data",response.data.jobs)
           setJob(response.data.jobs);
-          
-          // Fetch similar jobs based on title or skills
-          fetchSimilarJobs(response.data.job);
         } else {
           setError('Job not found');
         }
@@ -62,25 +61,91 @@ const SeeJobDetails = () => {
       }
     };
 
-    const fetchSimilarJobs = async (currentJob) => {
-      try {
-        // This would be an API endpoint for similar jobs
-        // For now, we'll just set an empty array
-        setSimilarJobs([]);
-      } catch (err) {
-        console.error('Error fetching similar jobs:', err);
-      }
-    };
-console.log("this is my job",job)
     fetchJobDetails();
 
     // Check if job is saved
     const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
     setSaved(savedJobs.includes(id));
-
-    // Check if already applied (would come from user data)
-    // setApplied(/* check if applied */);
   }, [id]);
+
+  // Check application status from backend
+  useEffect(() => {
+    const checkApplicationStatus = async () => {
+      if (!isLogin || !token || !id) return;
+      
+      setCheckingApplication(true);
+      try {
+        // Fetch user's applications from backend
+        const response = await axios.get(
+          `${config.API_BASE_URL}/applications/my-applications`,
+          {
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+
+        if (response.data.success) {
+          const applications = response.data.applications || [];
+          // Check if this job ID exists in user's applications
+          const hasApplied = applications.some(app => 
+            app.job?._id === id || app.job?.toString() === id
+          );
+          setApplied(hasApplied);
+          
+          // Also store in localStorage for quick access
+          if (hasApplied) {
+            const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+            if (!appliedJobs.includes(id)) {
+              localStorage.setItem('appliedJobs', JSON.stringify([...appliedJobs, id]));
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error checking application status:', err);
+        // Fallback to localStorage if backend fails
+        const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+        setApplied(appliedJobs.includes(id));
+      } finally {
+        setCheckingApplication(false);
+      }
+    };
+
+    checkApplicationStatus();
+  }, [id, isLogin, token]);
+
+  // Check if user owns this company (admin who added it)
+  const userOwnsCompany = () => {
+    if (!isLogin || !job?.company) return false;
+    return job.company.userId === user?.id || job.company.createdBy === user?.id;
+  };
+
+  // Check if user can apply to this job
+  const canApplyToJob = () => {
+    if (!isLogin) return false;
+    
+    // Admin who created this company cannot apply
+    if (role === 'admin' && userOwnsCompany()) {
+      return false;
+    }
+    
+    // Recruiter cannot apply to jobs (they post jobs)
+    if (role === 'recruiter') {
+      return false;
+    }
+    
+    // Regular users can apply
+    return true;
+  };
+
+  // Get apply button message for different scenarios
+  const getApplyButtonMessage = () => {
+    if (!isLogin) return 'Login to Apply';
+    if (role === 'admin' && userOwnsCompany()) {
+      return 'You own this company';
+    }
+    if (role === 'recruiter') return 'Recruiters cannot apply';
+    if (applied) return 'Already Applied';
+    return 'Apply Now';
+  };
 
   const handleSaveJob = () => {
     const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
@@ -96,9 +161,85 @@ console.log("this is my job",job)
     setSaved(!saved);
   };
 
-  const handleApply = () => {
-    // Navigate to application form
-    navigate(`/apply/${id}`, { state: { job } });
+  const handleApply = async () => {
+    // Check if user is logged in
+    if (!isLogin || !token) {
+      alert('Please login to apply for this job');
+      navigate('/login', { state: { from: `/seejobs/${id}` } });
+      return;
+    }
+
+    // Check if already applied
+    if (applied) {
+      alert('You have already applied for this job');
+      return;
+    }
+
+    // Check if user can apply
+    if (!canApplyToJob()) {
+      if (role === 'admin' && userOwnsCompany()) {
+        alert('As the company owner, you cannot apply to your own jobs');
+      } else if (role === 'recruiter') {
+        alert('Recruiters cannot apply to jobs. They post jobs instead.');
+      }
+      return;
+    }
+
+    setApplying(true);
+    setError(null);
+
+    try {
+      const response = await axios.post(
+        `${config.API_BASE_URL}/applications/apply/${id}`,
+        {},
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log("Application response:", response);
+
+      if (response.data.success) {
+        // Store in localStorage for quick access
+        const appliedJobs = JSON.parse(localStorage.getItem('appliedJobs') || '[]');
+        localStorage.setItem('appliedJobs', JSON.stringify([...appliedJobs, id]));
+        
+        setApplied(true);
+        
+        // Show success message
+        alert('Application submitted successfully!');
+      } else {
+        if (response.data.message === "You have already applied to this job") {
+          setApplied(true);
+          alert('You have already applied for this job');
+        } else {
+          alert(response.data.message || 'Failed to submit application');
+        }
+      }
+    } catch (error) {
+      console.log("Application error:", error);
+      
+      if (error.response) {
+        // Server responded with error
+        if (error.response.data?.message === "You have already applied to this job") {
+          setApplied(true);
+          alert('You have already applied for this job');
+        } else {
+          alert(error.response.data?.message || 'Failed to submit application');
+        }
+      } else if (error.request) {
+        // Request made but no response
+        alert('No response from server. Please try again.');
+      } else {
+        // Something else happened
+        alert('An error occurred. Please try again.');
+      }
+    } finally {
+      setApplying(false);
+    }
   };
 
   const handleShare = async () => {
@@ -118,8 +259,6 @@ console.log("this is my job",job)
       alert('Link copied to clipboard!');
     }
   };
-
-  console.log("this is the job", job)
 
   const getJobTypeColor = (type) => {
     const colors = {
@@ -388,29 +527,98 @@ console.log("this is my job",job)
           {/* Right Column - 1/3 width (Sticky) */}
           <div className="lg:col-span-1">
             <div className="sticky top-24 space-y-6">
+              
+              {/* Admin/Recruiter Button - Shows for admins, recruiters, and company owners */}
+              {isLogin && (role === 'admin' || role === 'recruiter' || userOwnsCompany()) && (
+                <Link
+                  to={`/job-applicants/${job._id}`}
+                  className="w-full py-4 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-bold rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2"
+                >
+                  <UserGroupIcon className="h-5 w-5" />
+                  View Applicants ({job.applicants?.length || 0})
+                </Link>
+              )}
+
               {/* Apply Card */}
               <div className="bg-white rounded-3xl shadow-xl border border-slate-200 p-6">
                 <h3 className="text-xl font-bold text-slate-900 mb-4">Ready to apply?</h3>
                 
-                {applied ? (
+                {checkingApplication ? (
+                  <div className="flex justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                  </div>
+                ) : applied ? (
                   <div className="p-4 bg-emerald-50 rounded-xl text-center">
                     <CheckCircleIcon className="h-12 w-12 text-emerald-600 mx-auto mb-2" />
                     <p className="font-semibold text-emerald-700">Application Submitted!</p>
                     <p className="text-sm text-emerald-600 mt-1">You'll hear from us soon</p>
+                    <Link
+                      to="/applyedJob"
+                      className="mt-3 inline-block text-sm text-emerald-700 hover:text-emerald-800 underline"
+                    >
+                      View all applications →
+                    </Link>
                   </div>
                 ) : (
                   <>
-                    <button
-                      onClick={handleApply}
-                      className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg mb-3"
-                    >
-                      Apply Now
-                    </button>
-                    
-                    <p className="text-xs text-slate-500 text-center">
-                      <PaperAirplaneIcon className="h-3 w-3 inline mr-1" />
-                      Your application will be sent to the employer
-                    </p>
+                    {/* Check if user can apply */}
+                    {!isLogin ? (
+                      <div className="text-center">
+                        <button
+                          onClick={() => navigate('/login', { state: { from: `/seejobs/${id}` } })}
+                          className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg mb-3"
+                        >
+                          Login to Apply
+                        </button>
+                        <p className="text-xs text-slate-500 text-center">
+                          <PaperAirplaneIcon className="h-3 w-3 inline mr-1" />
+                          You need to be logged in to apply
+                        </p>
+                      </div>
+                    ) : role === 'admin' && userOwnsCompany() ? (
+                      <div className="p-4 bg-purple-50 rounded-xl text-center">
+                        <BuildingOfficeIcon className="h-12 w-12 text-purple-600 mx-auto mb-2" />
+                        <p className="font-semibold text-purple-700">You own this company</p>
+                        <p className="text-sm text-purple-600 mt-1">As the company owner, you can only view applicants</p>
+                        <div className="mt-3 text-sm text-purple-700">
+                          {job.applicants?.length || 0} applicants received
+                        </div>
+                      </div>
+                    ) : role === 'recruiter' ? (
+                      <div className="p-4 bg-amber-50 rounded-xl text-center">
+                        <BriefcaseIcon className="h-12 w-12 text-amber-600 mx-auto mb-2" />
+                        <p className="font-semibold text-amber-700">Recruiter Account</p>
+                        <p className="text-sm text-amber-600 mt-1">Recruiters post jobs, they don't apply to them</p>
+                        <Link
+                          to="/post-job"
+                          className="mt-3 inline-block text-sm text-amber-700 hover:text-amber-800 underline"
+                        >
+                          Post a Job →
+                        </Link>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handleApply}
+                          disabled={applying}
+                          className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all transform hover:scale-105 shadow-lg mb-3 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                        >
+                          {applying ? (
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                              <span>Applying...</span>
+                            </div>
+                          ) : (
+                            'Apply Now'
+                          )}
+                        </button>
+                        
+                        <p className="text-xs text-slate-500 text-center">
+                          <PaperAirplaneIcon className="h-3 w-3 inline mr-1" />
+                          Your application will be sent to the employer
+                        </p>
+                      </>
+                    )}
                   </>
                 )}
               </div>
@@ -451,10 +659,10 @@ console.log("this is my job",job)
                       </div>
                     )}
 
-                    <Link  to={`/companies/${job.company._id}`} >
-                    <button className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors font-medium"> 
-                      View Company Profile</button>
-                     
+                    <Link to={`/companies/${job.company._id}`}>
+                      <button className="w-full py-3 border-2 border-blue-600 text-blue-600 rounded-xl hover:bg-blue-50 transition-colors font-medium"> 
+                        View Company Profile
+                      </button>
                     </Link>
                   </div>
                 </div>
@@ -487,7 +695,7 @@ console.log("this is my job",job)
                   
                   <div className="flex items-center justify-between py-2">
                     <span className="text-slate-600">Applications:</span>
-                    <span className="font-medium">{job.applicationCount || 0} received</span>
+                    <span className="font-medium">{job.applicants?.length || 0} received</span>
                   </div>
                 </div>
               </div>

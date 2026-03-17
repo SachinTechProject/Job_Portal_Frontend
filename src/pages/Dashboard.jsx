@@ -34,9 +34,11 @@ const Dashboard = () => {
   const [jobs, setJobs] = useState([]);
   const [filteredJobs, setFilteredJobs] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
   const [stats, setStats] = useState({
     applied: 0,
     saved: 0,
+    interviews: 0,
     views: 347,
     connections: 156
   });
@@ -44,7 +46,7 @@ const Dashboard = () => {
   const [categories, setCategories] = useState([]);
 
   const token = localStorage.getItem("token");
-console.log("this is the user")
+
   // User data from context with fallbacks
   const userData = {
     name: user?.fullName || user?.name || 'Guest User',
@@ -65,29 +67,20 @@ console.log("this is the user")
   ];
 
   useEffect(() => {
-    const fetchJobs = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${config.API_BASE_URL}/jobs/getAllJobs`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+        
+        // Fetch jobs
+        const jobsResponse = await axios.get(`${config.API_BASE_URL}/jobs/getAllJobs`, {
+          headers: { Authorization: `Bearer ${token}` }
         });
 
-        if (response.data.success) {
-          const jobsData = response.data.jobs || [];
+        if (jobsResponse.data.success) {
+          const jobsData = jobsResponse.data.jobs || [];
           setJobs(jobsData);
           setFilteredJobs(jobsData);
           
-          // Calculate stats from real data
-          const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
-          setStats({
-            applied: jobsData.filter(job => job.appliedBy?.includes(user?.id)).length || 0,
-            saved: savedJobs.length,
-            views: 347, // Keep static for now
-            connections: 156 // Keep static for now
-          });
-
           // Generate categories from real job data
           const jobTypes = ['all', ...new Set(jobsData.map(job => job.jobType).filter(Boolean))];
           const categoryCounts = jobTypes.map(type => ({
@@ -96,37 +89,69 @@ console.log("this is the user")
             count: type === 'all' ? jobsData.length : jobsData.filter(job => job.jobType === type).length
           }));
           setCategories(categoryCounts);
+        }
 
-          // Generate recent activities from jobs
-          const activities = [];
-          jobsData.slice(0, 4).forEach(job => {
-            activities.push({
-              id: job._id,
-              type: 'view',
-              company: job.company?.name || 'Company',
-              position: job.title,
-              time: new Date(job.createdAt).toLocaleDateString('en-US', { 
+        // Fetch user's applications if logged in
+        if (isLogin && token) {
+          const appsResponse = await axios.get(
+            `${config.API_BASE_URL}/applications/my-applications`,
+            {
+              headers: { Authorization: `Bearer ${token}` }
+            }
+          );
+
+          if (appsResponse.data.success) {
+            const applicationsData = appsResponse.data.applications || [];
+            setApplications(applicationsData);
+            
+            // Calculate application stats
+            const appliedCount = applicationsData.length;
+            const interviewCount = applicationsData.filter(app => app.status === 'accepted').length;
+            
+            // Get saved jobs from localStorage
+            const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+            
+            setStats(prev => ({
+              ...prev,
+              applied: appliedCount,
+              saved: savedJobs.length,
+              interviews: interviewCount
+            }));
+
+            // Generate recent activities from applications
+            const activities = applicationsData.slice(0, 4).map(app => ({
+              id: app._id,
+              type: app.status === 'accepted' ? 'interview' : 'application',
+              company: app.job?.company?.name || 'Company',
+              position: app.job?.title || 'Position',
+              time: new Date(app.createdAt).toLocaleDateString('en-US', { 
                 month: 'short', 
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
               }),
-              status: 'viewed'
-            });
-          });
-          setRecentActivities(activities);
+              status: app.status
+            }));
+            setRecentActivities(activities);
+          }
+        } else {
+          // If not logged in, just show saved jobs from localStorage
+          const savedJobs = JSON.parse(localStorage.getItem('savedJobs') || '[]');
+          setStats(prev => ({
+            ...prev,
+            saved: savedJobs.length
+          }));
         }
+
       } catch (error) {
-        console.error('Error fetching jobs:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    if (token) {
-      fetchJobs();
-    }
-  }, [token, user?.id]);
+    fetchData();
+  }, [token, user?.id, isLogin]);
 
   // Filter jobs based on category
   useEffect(() => {
@@ -154,7 +179,6 @@ console.log("this is the user")
 
   // Get job match score (mock function - can be replaced with actual algorithm)
   const getMatchScore = (job) => {
-    // This is a mock function - replace with actual matching logic
     const baseScore = 70;
     const randomFactor = Math.floor(Math.random() * 20);
     return Math.min(95, baseScore + randomFactor);
@@ -173,7 +197,10 @@ console.log("this is the user")
     return posted.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const getActivityIcon = (type) => {
+  const getActivityIcon = (type, status) => {
+    if (status === 'accepted') {
+      return <CalendarIcon className="h-4 w-4 text-orange-600" />;
+    }
     switch(type) {
       case 'application': return <PaperAirplaneIcon className="h-4 w-4 text-blue-600" />;
       case 'save': return <BookmarkIcon className="h-4 w-4 text-purple-600" />;
@@ -183,7 +210,8 @@ console.log("this is the user")
     }
   };
 
-  const getActivityBg = (type) => {
+  const getActivityBg = (type, status) => {
+    if (status === 'accepted') return 'bg-orange-100';
     switch(type) {
       case 'application': return 'bg-blue-100';
       case 'save': return 'bg-purple-100';
@@ -193,12 +221,19 @@ console.log("this is the user")
     }
   };
 
+  const getActivityText = (activity) => {
+    if (activity.status === 'accepted') {
+      return `Interview scheduled for ${activity.position} at ${activity.company}`;
+    }
+    return `Applied to ${activity.position} at ${activity.company}`;
+  };
+
   // Stats with real data
   const statsData = [
     { icon: BriefcaseIcon, label: 'Applied Jobs', value: stats.applied.toString(), trend: '+3', color: 'from-blue-500 to-blue-600', bgColor: 'bg-blue-50', iconColor: 'text-blue-600' },
     { icon: BookmarkIcon, label: 'Saved Jobs', value: stats.saved.toString(), trend: '+2', color: 'from-purple-500 to-purple-600', bgColor: 'bg-purple-50', iconColor: 'text-purple-600' },
+    { icon: CalendarIcon, label: 'Interviews', value: stats.interviews.toString(), trend: '+1', color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-50', iconColor: 'text-orange-600' },
     { icon: EyeIcon, label: 'Profile Views', value: stats.views.toString(), trend: '+48', color: 'from-green-500 to-green-600', bgColor: 'bg-green-50', iconColor: 'text-green-600' },
-    { icon: UserGroupIcon, label: 'Connections', value: stats.connections.toString(), trend: '+12', color: 'from-orange-500 to-orange-600', bgColor: 'bg-orange-50', iconColor: 'text-orange-600' },
   ];
 
   return (
@@ -436,7 +471,7 @@ console.log("this is the user")
                     <p className="text-xs text-gray-500">Saved</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-bold text-gray-900">8</p>
+                    <p className="text-lg font-bold text-gray-900">{stats.interviews}</p>
                     <p className="text-xs text-gray-500">Interviews</p>
                   </div>
                 </div>
@@ -502,20 +537,28 @@ console.log("this is the user")
               </h3>
               
               <div className="space-y-4">
-                {recentActivities.map((activity) => (
-                  <div key={activity.id} className="flex items-start p-3 bg-gray-50 rounded-xl">
-                    <div className={`${getActivityBg(activity.type)} p-2 rounded-lg mr-3`}>
-                      {getActivityIcon(activity.type)}
+                {recentActivities.length > 0 ? (
+                  recentActivities.map((activity) => (
+                    <div key={activity.id} className="flex items-start p-3 bg-gray-50 rounded-xl">
+                      <div className={`${getActivityBg(activity.type, activity.status)} p-2 rounded-lg mr-3`}>
+                        {getActivityIcon(activity.type, activity.status)}
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-gray-900">
+                          {getActivityText(activity)}
+                        </p>
+                        <span className="text-xs text-gray-500">{activity.time}</span>
+                      </div>
+                      {activity.status === 'accepted' && (
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full">
+                          Interview
+                        </span>
+                      )}
                     </div>
-                    <div className="flex-1">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Viewed</span>{' '}
-                        {activity.position} at {activity.company}
-                      </p>
-                      <span className="text-xs text-gray-500">{activity.time}</span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-center text-gray-500 py-4">No recent activity</p>
+                )}
               </div>
               
               <Link
