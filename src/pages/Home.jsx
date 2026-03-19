@@ -23,14 +23,14 @@ const Home = () => {
           </p>
 
           <div className="mt-12 flex flex-col items-center gap-6">
-            <button className="flex items-center justify-center gap-3 bg-white px-10 py-4 rounded-xl shadow hover:shadow-xl transition-all duration-300 border border-gray-200 w-full max-w-xs md:max-w-sm font-medium text-gray-700 hover:scale-[1.02]">
+            {/* <button className="flex items-center justify-center gap-3 bg-white px-10 py-4 rounded-xl shadow hover:shadow-xl transition-all duration-300 border border-gray-200 w-full max-w-xs md:max-w-sm font-medium text-gray-700 hover:scale-[1.02]">
               <img
                 src="https://www.svgrepo.com/show/475656/google-color.svg"
                 alt="Google"
                 className="w-6 h-6"
               />
               Continue with Google
-            </button>
+            </button> */}
 
             <div className="flex items-center w-full max-w-xs md:max-w-sm">
               <div className="flex-grow h-px bg-gray-300"></div>
